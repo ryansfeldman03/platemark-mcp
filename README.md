@@ -1,6 +1,6 @@
 # Platemark MCP server
 
-Platemark is a hosted MCP server that turns structured data into finished files: invoice, quote and receipt PDFs with the totals computed to the cent, certificates and letters, social images from templates, and short vertical videos.
+Platemark is a hosted MCP server that turns data into finished files: chart images from numbers, invoice, quote and receipt PDFs with the totals computed to the cent, certificates and letters, social images from templates, and short vertical videos.
 
 Language models slip on arithmetic and page layout. Platemark takes both off their hands. The agent passes quantities and prices; Platemark does the math, formats money for the currency and locale, and returns a PDF link with the totals as JSON, so what the agent reports always matches the document.
 
@@ -28,10 +28,13 @@ No key yet? Connect without the header and call `create_account` with an email. 
 
 | Tool | What it does | Credits |
 |-|-|-|
+| `render_chart` | Bar, horizontal bar, stacked bar, line, area, pie or donut chart from numbers. Returns the PNG, a link kept for a year and one sentence of alt text. | 1 |
 | `render_invoice` | Invoice PDF from line items, tax, discount, shipping and amount paid. Returns the link, page count and totals. | 2 |
 | `render_document` | Quote, receipt, certificate or letter PDF. | 2 |
 | `list_templates` | Image templates and their slots. Filter by tag, like `real estate`, `og` or `story`. | 0 |
 | `render_image` | Fills a template and returns the PNG. Text shrinks to fit its box. | 1 |
+| `render_video` | MP4 up to 90 seconds from template or photo scenes, with zoom, pan, fades and optional music. Returns a job id. | 0.5 per second |
+| `video_status` | Status of a video job, with the MP4 link when done. | 0 |
 | `account_status` | Plan and credits left. | 0 |
 | `create_account` | Free account and API key, so an agent can sign itself up. | 0 |
 

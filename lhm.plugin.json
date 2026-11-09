@@ -1,7 +1,7 @@
 {
   "author": "Rowhouse Software",
   "cloudEndpoint": "https://platemark.rowhousesoftware.com/mcp",
-  "description": "Remote MCP server for invoice, quote and receipt PDFs with the math done to the cent, plus certificates, letters, social images and short videos.",
+  "description": "Remote MCP server that turns data into finished files: chart images from numbers, invoice, quote and receipt PDFs with the math done to the cent, certificates, letters, social images and short videos.",
   "homepage": "https://platemark.rowhousesoftware.com",
   "identifier": "platemark-mcp",
   "name": "Platemark",
@@ -45,6 +45,140 @@
         },
         "required": [
           "template"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "render_chart",
+      "title": "Make a chart image",
+      "description": "Turn numbers into a clean chart PNG: bar, horizontal_bar, stacked_bar, line, area, pie or donut. Returns the image, a link that works for a year (for emails, docs, Slack or markdown) and one-sentence alt text describing the data. Axes, number formatting, colors and labels are handled; pass the data and a title. Costs 1 credit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "bar",
+              "horizontal_bar",
+              "stacked_bar",
+              "line",
+              "area",
+              "pie",
+              "donut"
+            ],
+            "description": "bar for comparing categories, line or area for change over time, stacked_bar for parts of a total over categories, pie or donut for shares of one total (6 slices max; the rest fold into Other), horizontal_bar for long category names."
+          },
+          "title": {
+            "type": "string",
+            "description": "What the chart shows, like 'Monthly revenue'."
+          },
+          "subtitle": {
+            "type": "string",
+            "description": "Units, period or context, like 'USD, 2026'."
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "One label per value: months, categories or slice names."
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "description": "For a single series. Use series instead for several."
+          },
+          "series": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "object",
+              "required": [
+                "values"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "values": {
+                  "type": "array",
+                  "items": {
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                }
+              }
+            },
+            "description": "Several series share the labels. null leaves a gap in a line."
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "number",
+              "currency",
+              "percent"
+            ],
+            "description": "percent expects percentages: 12.5 means 12.5%."
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO code like USD or EUR, with format currency."
+          },
+          "locale": {
+            "type": "string",
+            "description": "Like en-US or de-DE."
+          },
+          "decimals": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 4
+          },
+          "highlight": {
+            "type": "string",
+            "description": "A label to emphasize; the other bars or slices go gray."
+          },
+          "size": {
+            "type": "string",
+            "enum": [
+              "landscape",
+              "og",
+              "square",
+              "portrait",
+              "story"
+            ],
+            "description": "landscape 1200x675 (default), og 1200x630, square 1080x1080, portrait 1080x1350, story 1080x1920."
+          },
+          "theme": {
+            "type": "string",
+            "enum": [
+              "light",
+              "dark"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "description": "Footnote, like 'Source: Stripe'."
+          },
+          "show_values": {
+            "type": "boolean",
+            "description": "Force value labels on or off. By default they appear where they fit."
+          }
+        },
+        "required": [
+          "type"
         ]
       },
       "annotations": {
@@ -263,6 +397,98 @@
       }
     },
     {
+      "name": "render_video",
+      "title": "Make a short video",
+      "description": "Make an MP4 (up to 90 seconds) from scenes: each scene is a filled image template or an https photo, shown for some seconds with a slow zoom or pan, joined by fades, with optional music. Returns a job id at once; call video_status with it until the status is done (usually 15 to 60 seconds) to get the MP4 link. Costs half a credit per second, rounded up.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "scenes": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "properties": {
+                "template": {
+                  "type": "string",
+                  "description": "Template id from list_templates. Every template in one video must be the same size."
+                },
+                "modifications": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "Slot values, as in render_image."
+                },
+                "image_url": {
+                  "type": "string",
+                  "description": "An https photo, instead of a template."
+                },
+                "seconds": {
+                  "type": "number",
+                  "minimum": 1,
+                  "maximum": 30,
+                  "default": 3
+                },
+                "motion": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "zoom_in",
+                    "zoom_out",
+                    "pan_left",
+                    "pan_right"
+                  ],
+                  "default": "zoom_in"
+                }
+              }
+            }
+          },
+          "transition": {
+            "type": "string",
+            "enum": [
+              "fade",
+              "cut"
+            ],
+            "default": "fade"
+          },
+          "audio_url": {
+            "type": "string",
+            "description": "Optional https MP3, M4A, AAC or WAV, trimmed to the video."
+          }
+        },
+        "required": [
+          "scenes"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "video_status",
+      "title": "Check a video job",
+      "description": "Status of a render_video job: queued, rendering, done (with the MP4 link, kept 30 days) or failed (credits refunded).",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The id render_video returned, like vid_..."
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
       "name": "create_account",
       "title": "Create a free Platemark account",
       "description": "Make a free Platemark account (100 credits a month for images, PDFs and video, small watermark) and return its API key. The key is shown once; tell the user to save it and add it to this server's Authorization header.",
@@ -298,9 +524,10 @@
       }
     }
   ],
-  "version": "1.1.0",
+  "version": "1.2.0",
   "category": "productivity",
   "tags": [
+    "charts",
     "invoice",
     "pdf",
     "documents",
@@ -308,7 +535,6 @@
     "receipts",
     "image generation",
     "templates",
-    "social media",
     "video"
   ],
   "icon": "🧾",
