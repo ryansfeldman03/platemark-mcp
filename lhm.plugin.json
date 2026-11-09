@@ -1,0 +1,316 @@
+{
+  "author": "Rowhouse Software",
+  "cloudEndpoint": "https://platemark.rowhousesoftware.com/mcp",
+  "description": "Remote MCP server for invoice, quote and receipt PDFs with the math done to the cent, plus certificates, letters, social images and short videos.",
+  "homepage": "https://platemark.rowhousesoftware.com",
+  "identifier": "platemark-mcp",
+  "name": "Platemark",
+  "prompts": [],
+  "resources": [],
+  "tools": [
+    {
+      "name": "list_templates",
+      "title": "List image templates",
+      "description": "List Platemark image templates with their size and the slots each one takes. Call this first to pick a template and see slot names.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tag": {
+            "type": "string",
+            "description": "Optional filter, like 'real estate', 'og', 'story' or 'ecommerce'."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "render_image",
+      "title": "Render a social image",
+      "description": "Fill a template's slots and get back a finished PNG. Text shrinks to fit its box. Image slots take an https PNG, JPG or GIF URL under 4 MB. Leave a slot out to keep its sample. Costs 1 credit.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "template": {
+            "type": "string",
+            "description": "Template id from list_templates, like 'og-image'."
+          },
+          "modifications": {
+            "type": "object",
+            "description": "Keyed by slot name. A value is a string, or an object like {\"text\": \"...\", \"color\": \"#fff\"} or {\"image_url\": \"https://...\"}.",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "template"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "render_invoice",
+      "title": "Make an invoice PDF",
+      "description": "Make a professional invoice PDF and get a link to it. Send the line items and rates; Platemark does the math (subtotal, discount, tax, shipping, amount paid, amount due) in exact cents and formats money for the currency. Returns the PDF link, page count and the totals it used. Costs 2 credits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "object",
+            "description": "Who is billing.",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "address": {
+                "type": "string",
+                "description": "Street, city and so on, separated by line breaks or commas."
+              },
+              "email": {
+                "type": "string"
+              },
+              "phone": {
+                "type": "string"
+              },
+              "tax_id": {
+                "type": "string"
+              }
+            }
+          },
+          "to": {
+            "type": "object",
+            "description": "Who is being billed.",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "address": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              }
+            }
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "description",
+                "unit_price"
+              ],
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "detail": {
+                  "type": "string"
+                },
+                "quantity": {
+                  "type": "number",
+                  "default": 1
+                },
+                "unit_price": {
+                  "type": "number",
+                  "description": "Price of one unit, in the invoice currency."
+                }
+              }
+            }
+          },
+          "number": {
+            "type": "string",
+            "description": "Invoice number, like INV-1042."
+          },
+          "issue_date": {
+            "type": "string",
+            "description": "YYYY-MM-DD. Defaults to today."
+          },
+          "due_date": {
+            "type": "string",
+            "description": "YYYY-MM-DD."
+          },
+          "due_days": {
+            "type": "number",
+            "description": "Days after the issue date, if no due_date. 30 means Net 30."
+          },
+          "currency": {
+            "type": "string",
+            "description": "ISO code like USD, EUR, GBP. Default USD."
+          },
+          "locale": {
+            "type": "string",
+            "description": "Like en-US or de-DE, for date and number formats."
+          },
+          "discount": {
+            "type": "object",
+            "properties": {
+              "percent": {
+                "type": "number"
+              },
+              "amount": {
+                "type": "number"
+              },
+              "label": {
+                "type": "string"
+              }
+            }
+          },
+          "tax": {
+            "type": "object",
+            "properties": {
+              "percent": {
+                "type": "number"
+              },
+              "amount": {
+                "type": "number"
+              },
+              "label": {
+                "type": "string",
+                "description": "Like 'Sales tax (6%)' or 'VAT'."
+              }
+            }
+          },
+          "shipping": {
+            "type": "number"
+          },
+          "amount_paid": {
+            "type": "number",
+            "description": "Already paid, subtracted from the total."
+          },
+          "payment_instructions": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "terms": {
+            "type": "string"
+          },
+          "po_number": {
+            "type": "string"
+          },
+          "accent": {
+            "type": "string",
+            "description": "Hex color for the title and total, like #1d4ed8."
+          },
+          "paper": {
+            "type": "string",
+            "enum": [
+              "letter",
+              "a4"
+            ]
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "items"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "render_document",
+      "title": "Make a quote, receipt, certificate or letter PDF",
+      "description": "Make a PDF of another kind: quote (estimate with valid-until date), receipt (marked Paid), certificate (completion or award, with signatures) or letter (offer letters, notices). Pass the type and its fields; quotes and receipts take the same fields as render_invoice. Returns a PDF link. Costs 2 credits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "quote",
+              "receipt",
+              "certificate",
+              "letter",
+              "invoice"
+            ]
+          },
+          "fields": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "quote/receipt: same as render_invoice, plus valid_until or valid_days (quote) and paid_date, payment_method (receipt). certificate: title, recipient, reason, kicker, presented, signatures [{name, role}], date, id. letter: from {name, address}, to {name, address}, subject, body (paragraphs split by blank lines), closing, signer, signer_role, date."
+          }
+        },
+        "required": [
+          "type",
+          "fields"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "create_account",
+      "title": "Create a free Platemark account",
+      "description": "Make a free Platemark account (100 credits a month for images, PDFs and video, small watermark) and return its API key. The key is shown once; tell the user to save it and add it to this server's Authorization header.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "account_status",
+      "title": "Check plan and credits",
+      "description": "Plan and credits left for the connected key. Call it before a batch of renders to check there are enough credits.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false
+      }
+    }
+  ],
+  "version": "1.1.0",
+  "category": "productivity",
+  "tags": [
+    "invoice",
+    "pdf",
+    "documents",
+    "quotes",
+    "receipts",
+    "image generation",
+    "templates",
+    "social media",
+    "video"
+  ],
+  "icon": "🧾",
+  "authorUrl": "https://rowhousesoftware.com"
+}

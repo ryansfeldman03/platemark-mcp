@@ -1,0 +1,9 @@
+{
+  "name": "platemark-mcp",
+  "version": "1.1.0",
+  "private": true,
+  "description": "Remote MCP server for invoice, quote and receipt PDFs with the math done to the cent, plus certificates, letters, social images and short videos.",
+  "homepage": "https://platemark.rowhousesoftware.com",
+  "author": "Rowhouse Software",
+  "license": "MIT"
+}
